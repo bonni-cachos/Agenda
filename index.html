@@ -21,6 +21,19 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Bonni Cachos">
 
+  <script>
+    // === LÓGICA DE PRIVACIDADE E SESSÃO RÁPIDA (BYPASS) ===
+    const agora = new Date().getTime();
+    const ultimoAcesso = localStorage.getItem("pwa_ultimo_acesso");
+    const limiteBypassSessao = 20 * 60 * 1000; // 20 minutos de tolerância para pular animações
+    
+    // Se acessou recentemente, ativa o modo de carregamento rápido
+    const pularSplash = (ultimoAcesso && (agora - Number(ultimoAcesso)) < limiteBypassSessao);
+    
+    // Atualiza o timestamp de último acesso ativo
+    localStorage.setItem("pwa_ultimo_acesso", agora);
+  </script>
+
   <style>
     :root {
       --red-800: #991b1b;
@@ -329,13 +342,38 @@
       <h1 class="brand-bonni">Bonni</h1>
       <h2 class="brand-cachos">Cachos</h2>
 
+      <!-- Injeção do micro-loader em recarregamentos de sessão rápida -->
+      <script>
+        if (pularSplash) {
+          document.write(
+            '<div class="flex flex-col items-center gap-2 mt-12 animate-pulse text-xs text-rose-100/80 font-semibold">' +
+              '<i class="ti ti-loader-2 animate-spin text-2xl text-rose-200"></i>' +
+              '<span>Carregando salão...</span>' +
+            '</div>'
+          );
+        }
+      </script>
+
       <div class="start-container">
         <button id="btn-start">Iniciar</button>
       </div>
     </div>
   </div>
 
-  <!-- Iframe Wrapper de Alta Segurança e Permissões Completas (Com Escape de Sandbox para Popups) -->
+  <script>
+    // Se for um reload rápido, oculta os holofotes e o botão Iniciar de forma imediata
+    // antes que a página comece a renderizar as transições pesadas
+    if (pularSplash) {
+      document.write('<style>' +
+        '.spotlight { display: none !important; }' +
+        '.start-container { display: none !important; }' +
+        '.center-content { animation: none !important; opacity: 1 !important; }' +
+        '#splash { animation: none !important; background-color: var(--red-800) !important; }' +
+      '</style>');
+    }
+  </script>
+
+  <!-- Iframe Wrapper de Alta Segurança e Permissões Completas (Escape de Sandbox para Popups Ativo) -->
   <iframe 
     id="app-frame" 
     src="https://script.google.com/macros/s/AKfycbxfoYQShZ4jfR8LHI4KMcrSyEyyZoRqh7kUjdhmgvc6Rgwk-eNU3ap_MMPNAKTRE3I/exec"
@@ -370,13 +408,14 @@
       }
     }, 15000);
 
-    // Evento de carregamento completo do iframe do GAS
+    // Evento de carregamento completo do iframe do GAS (Com Eager Bypass de Sessão)
     iframe.onload = () => {
       isGasLoaded = true;
       clearTimeout(watchdogTimer);
       
-      // Se o usuário clicou voluntariamente no botão enquanto carregava, revela na hora
-      if (hasUserClicked) {
+      // Se o usuário já clicou OU se estiver no modo de sessão rápida (pularSplash),
+      // faz a revelação direta do GAS de forma 100% automática!
+      if (hasUserClicked || pularSplash) {
         revealApp();
       } else {
         btnStart.innerText = "Iniciar";
