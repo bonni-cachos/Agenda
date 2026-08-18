@@ -479,8 +479,8 @@
     }
 
     // === PONTE DE COMUNICAÇÃO (POSTMESSAGE) ===
-    // Escuta transmissões de áudio/notificações de sistema vindas de dentro do iframe
     window.addEventListener('message', function(event) {
+      // 1. Escuta notificações oficiais do sistema operacional
       if (event.data && event.data.tipo === 'NOTIFICAR_TICKET') {
         if (window.Notification && Notification.permission === 'granted') {
           new Notification("Bonni Cachos - Novo Agendamento!", {
@@ -488,6 +488,11 @@
             icon: "Icon/Icon192.png"
           });
         }
+      }
+
+      // 2. Escuta pedidos de abertura de WhatsApp (Bypass definitivo de Sandbox)
+      if (event.data && event.data.tipo === 'ABRIR_WHATSAPP') {
+        window.open(event.data.url, '_blank');
       }
     });
   </script>
