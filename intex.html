@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Bonni Cachos</title>
+
+  <!-- Google Fonts em sintonia com a identidade visual do salão -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Mapeamento de Ícones e Manifesto PWA -->
+  <link rel="icon" type="image/png" href="Icon/Favicon.png">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="Icon/Icon180.png">
+
+  <!-- Meta Tags de Integração e Cor de Status para Dispositivos Móveis -->
+  <meta name="theme-color" content="#991b1b">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Bonni Cachos">
+
+  <style>
+    :root {
+      --red-800: #991b1b;
+      --bg-black: #08020d;
+      --glass-light: rgba(255, 255, 255, 0.12);
+      --spotlight-amber: #fef3c7;   /* Âmbar / Champanhe suave */
+      --spotlight-orange: #ffedd5;  /* Laranja / Luz de camarim quente */
+    }
+
+    body, html {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      width: 100%;
+      overflow: hidden;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: var(--bg-black);
+      color: #ffffff;
+    }
+
+    /* --- TOAST DE STATUS OFFLINE (Tailwind Style) --- */
+    #offline-toast {
+      position: fixed;
+      top: -100px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(153, 27, 27, 0.25); /* Vermelho translúcido */
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(153, 27, 27, 0.4);
+      padding: 12px 24px;
+      border-radius: 30px;
+      z-index: 10000;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      transition: top 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    #offline-toast.show { 
+      top: env(safe-area-inset-top, 24px); 
+    }
+
+    /* --- CONTAINER DO IFRAME (Sistema Real) --- */
+    #app-frame {
+      width: 100%;
+      height: 100%;
+      border: none;
+      display: block;
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.5s ease;
+      background-color: var(--bg-black); /* Previne flashes brancos indesejados */
+    }
+    #app-frame.loaded { 
+      opacity: 1; 
+      visibility: visible; 
+    }
+
+    /* --- SPLASH SCREEN CINEMATOGRÁFICA --- */
+    #splash {
+      position: fixed;
+      inset: 0;
+      background-color: var(--bg-black);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 9000;
+      transition: opacity 0.6s ease-out;
+      overflow: hidden;
+      /* Transição suave do fundo para o Vermelho do Salão */
+      animation: bgToRed 1.4s ease forwards;
+      animation-delay: 1.5s; 
+    }
+    #splash.hidden { 
+      opacity: 0; 
+      visibility: hidden; 
+      pointer-events: none; 
+    }
+
+    @keyframes bgToRed {
+      from { background-color: var(--bg-black); }
+      to { background-color: var(--red-800); }
+    }
+
+    /* HOLOFOTES DE CAMARIM (Sem cortes de borda) */
+    .spotlight {
+      position: absolute;
+      width: 250vw;
+      height: 250vh;
+      pointer-events: none;
+      mix-blend-mode: screen;
+      opacity: 0;
+      animation: fadeInSpots 1.5s ease forwards;
+    }
+
+    .spot-1 {
+      left: -50%; bottom: -50%;
+      background: conic-gradient(from 15deg at 20% 80%, transparent 0deg, var(--spotlight-amber) 4deg, transparent 15deg);
+      filter: blur(20px);
+      transform-origin: 20% 80%;
+      animation: spot1Lantern 10s infinite alternate ease-in-out, fadeInSpots 1.5s ease forwards;
+    }
+
+    .spot-2 {
+      right: -50%; bottom: -50%;
+      background: conic-gradient(from -15deg at 80% 80%, transparent 0deg, var(--spotlight-orange) 4deg, transparent 15deg);
+      filter: blur(20px);
+      transform-origin: 80% 80%;
+      animation: spot2Lantern 9s infinite alternate-reverse ease-in-out, fadeInSpots 1.5s ease forwards;
+    }
+
+    .spot-3 {
+      left: -50%; top: -50%;
+      background: conic-gradient(from 160deg at 20% 20%, transparent 0deg, var(--spotlight-orange) 6deg, transparent 40deg);
+      filter: blur(50px);
+      transform-origin: 20% 20%;
+      animation: spot3Lantern 18s infinite alternate ease-in-out, fadeInSpots 1.5s ease forwards;
+    }
+
+    .spot-4 {
+      right: -50%; top: -50%;
+      background: conic-gradient(from 180deg at 80% 20%, transparent 0deg, var(--spotlight-amber) 6deg, transparent 40deg);
+      filter: blur(50px);
+      transform-origin: 80% 20%;
+      animation: spot4Lantern 22s infinite alternate-reverse ease-in-out, fadeInSpots 1.5s ease forwards;
+    }
+
+    @keyframes fadeInSpots { to { opacity: 0.65; } }
+    @keyframes spot1Lantern { 0% { transform: rotate(0deg); } 100% { transform: rotate(35deg); } }
+    @keyframes spot2Lantern { 0% { transform: rotate(0deg); } 100% { transform: rotate(-35deg); } }
+    @keyframes spot3Lantern { 0% { transform: rotate(0deg); } 100% { transform: rotate(-25deg); } }
+    @keyframes spot4Lantern { 0% { transform: rotate(0deg); } 100% { transform: rotate(25deg); } }
+
+    /* Efeito de Vidro Fosco sobre as luzes */
+    #glass-overlay {
+      position: absolute;
+      inset: 0;
+      backdrop-filter: blur(3px);
+      -webkit-backdrop-filter: blur(3px);
+      background: rgba(0, 0, 0, 0.25);
+      z-index: 3;
+    }
+
+    /* --- ASSINATURA POWERED FIXED --- */
+    .powered-container {
+      position: absolute;
+      left: 50%;
+      bottom: 40px;
+      transform: translateX(-50%);
+      z-index: 10;
+      text-align: center;
+      opacity: 0;
+      animation: fadeInPowered 1s ease forwards;
+      animation-delay: 1s;
+    }
+    @keyframes fadeInPowered { 
+      to { opacity: 0.7; } 
+    }
+    .powered-by { 
+      font-size: 0.65rem; 
+      opacity: 0.8; 
+      letter-spacing: 1.5px; 
+      font-weight: 300; 
+    }
+
+    /* --- CONTEÚDO CENTRAL (EFEITO ZOOM DO INFINITO) --- */
+    .center-content {
+      position: relative;
+      z-index: 10;
+      text-align: center;
+      opacity: 0;
+      /* Aplica o efeito cinematográfico de surgir crescendo e limpando desfoque */
+      animation: growFromBack 1.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+      animation-delay: 1.5s;
+    }
+
+    @keyframes growFromBack {
+      0% {
+        opacity: 0;
+        transform: scale(0.35) translateY(20px);
+        filter: blur(12px);
+      }
+      100% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+        filter: blur(0);
+      }
+    }
+
+    .welcome-text { 
+      font-size: 0.85rem; 
+      text-transform: uppercase; 
+      letter-spacing: 5px; 
+      opacity: 0.75; 
+      font-weight: 300; 
+    }
+
+    .brand-bonni { 
+      font-family: 'Dancing Script', cursive;
+      font-size: clamp(6.5rem, 21vw, 11rem); 
+      margin: -10px 0; 
+      line-height: 1.1; 
+      background: linear-gradient(to bottom, #ffffff, #f1f5f9); 
+      -webkit-background-clip: text; 
+      -webkit-text-fill-color: transparent; 
+      filter: drop-shadow(0px 10px 25px rgba(0, 0, 0, 0.5)); 
+    }
+
+    .brand-cachos { 
+      font-family: 'Plus Jakarta Sans', sans-serif; 
+      font-size: clamp(1.2rem, 5.5vw, 1.8rem); 
+      letter-spacing: clamp(8px, 2vw, 14px); 
+      text-transform: uppercase; 
+      font-weight: 700; 
+      color: rgba(255, 255, 255, 0.95); 
+      margin-left: clamp(8px, 2vw, 14px); /* Centraliza o tracking descontando margem à direita */
+    }
+
+    /* --- BOTÃO GLASSMORPHISM --- */
+    .start-container { 
+      margin-top: 45px; 
+      opacity: 0;
+      animation: fadeInButton 1s ease forwards;
+      animation-delay: 2.8s; /* Revela após a marca terminar de crescer e se fixar */
+    }
+    @keyframes fadeInButton { 
+      to { opacity: 1; } 
+    }
+
+    #btn-start {
+      position: relative;
+      background: var(--glass-light);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      color: #ffffff;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 1rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      padding: 18px 50px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 40px;
+      cursor: pointer;
+      overflow: hidden;
+      transition: all 0.4s ease;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+    }
+
+    #btn-start::after {
+      content: '';
+      position: absolute;
+      top: -50%; left: -100%;
+      width: 50%; height: 200%;
+      background: linear-gradient(to right, transparent, rgba(255,255,255,0.3), transparent);
+      transform: rotate(30deg);
+      animation: shine 4s infinite;
+    }
+
+    @keyframes shine { 
+      0% { left: -100%; } 
+      20% { left: 150%; } 
+      100% { left: 150%; } 
+    }
+    #btn-start:active { 
+      transform: scale(0.96); 
+    }
+    #btn-start:disabled { 
+      opacity: 0.6; 
+      cursor: wait; 
+    }
+
+    @media (max-height: 700px) {
+      .brand-bonni { font-size: clamp(4.5rem, 16vw, 7rem); }
+      .powered-container { bottom: 24px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Aviso de status offline -->
+  <div id="offline-toast"><span>&#9888;</span> Sem conexão</div>
+
+  <!-- Splash Screen -->
+  <div id="splash">
+    <div class="spotlight spot-1"></div>
+    <div class="spotlight spot-2"></div>
+    <div class="spotlight spot-3"></div>
+    <div class="spotlight spot-4"></div> 
+
+    <div id="glass-overlay"></div>
+
+    <div class="powered-container">
+      <div class="powered-by">Powered with <span style="color: #FFFFFF;">&#10084;</span> by <strong>Mesaque</strong></div>
+    </div>
+
+    <div class="center-content">
+      <div class="welcome-text">Bem-vindo a</div>
+      <h1 class="brand-bonni">Bonni</h1>
+      <h2 class="brand-cachos">Cachos</h2>
+
+      <div class="start-container">
+        <button id="btn-start">Iniciar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Iframe Wrapper de Alta Segurança e Permissões Completas -->
+  <iframe 
+    id="app-frame" 
+    allow="geolocation; microphone; camera; clipboard-write; autoplay; fullscreen"
+    sandbox="allow-forms allow-scripts allow-same-origin allow-popups allow-top-navigation-by-user-activation allow-modals allow-storage-access-by-user-activation"
+  ></iframe>
+
+  <script>
+    const splash = document.getElementById('splash');
+    const iframe = document.getElementById('app-frame');
+    const btnStart = document.getElementById('btn-start');
+    const offlineToast = document.getElementById('offline-toast');
+
+    // Link definitivo de execução do seu Google Apps Script (Bonni Cachos)
+    const gasUrl = "https://script.google.com/macros/s/AKfycbxfoYQShZ4jfR8LHI4KMcrSyEyyZoRqh7kUjdhmgvc6Rgwk-eNU3ap_MMPNAKTRE3I/exec";
+
+    let isGasLoaded = false;
+    let hasUserClicked = false;
+
+    // Monitora a conexão de internet do usuário em tempo real
+    window.addEventListener('offline', () => offlineToast.classList.add('show'));
+    window.addEventListener('online', () => offlineToast.classList.remove('show'));
+
+    // Inicia o carregamento do iframe silenciosamente de forma concorrente
+    iframe.src = gasUrl;
+
+    // Watchdog de Segurança: se demorar mais de 15 segundos, libera o botão para retry
+    const watchdogTimer = setTimeout(() => {
+      if (!isGasLoaded) {
+        btnStart.innerText = "Tentar carregar novamente";
+        btnStart.disabled = false;
+      }
+    }, 15000);
+
+    // Evento de carregamento completo do iframe do GAS
+    iframe.onload = () => {
+      isGasLoaded = true;
+      clearTimeout(watchdogTimer);
+      
+      // Se o usuário clicou voluntariamente no botão enquanto carregava, revela na hora
+      if (hasUserClicked) {
+        revealApp();
+      } else {
+        btnStart.innerText = "Iniciar";
+        btnStart.disabled = false;
+      }
+    };
+
+    // Clique no botão iniciar (Ação com Gesto de Usuário que libera áudio e notificações)
+    btnStart.addEventListener('click', () => {
+      if (!navigator.onLine) { 
+        alert("Sem conexão ativa de internet."); 
+        return; 
+      }
+
+      hasUserClicked = true;
+
+      // Solicita permissão oficial de notificações nativas do sistema na primeira interação
+      if (window.Notification && Notification.permission === "default") {
+        Notification.requestPermission().catch(() => {});
+      }
+
+      if (isGasLoaded) {
+        revealApp();
+      } else {
+        btnStart.innerText = "Conectando...";
+        btnStart.disabled = true;
+      }
+    });
+
+    // Transição suave: oculta a splash screen e revela o aplicativo
+    function revealApp() {
+      setTimeout(() => {
+        iframe.classList.add('loaded');
+        splash.classList.add('hidden');
+      }, 300); // 300ms de segurança para o iframe terminar a pintura de tela interna
+    }
+
+    // Registro do Service Worker para o escopo do PWA no GitHub Pages
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch((err) => {
+          console.warn("Falha ao registrar Service Worker do PWA:", err);
+        });
+      });
+    }
+
+    // === PONTE DE COMUNICAÇÃO (POSTMESSAGE) ===
+    // Escuta transmissões de áudio/notificações de sistema vindas de dentro do iframe
+    window.addEventListener('message', function(event) {
+      if (event.data && event.data.tipo === 'NOTIFICAR_TICKET') {
+        if (window.Notification && Notification.permission === 'granted') {
+          new Notification("Bonni Cachos - Novo Agendamento!", {
+            body: "Cliente: " + event.data.cliente + "\nHorário: " + event.data.hora + "h\nTicket: #" + event.data.ticket,
+            icon: "Icon/Icon192.png"
+          });
+        }
+      }
+    });
+  </script>
+</body>
+</html>
