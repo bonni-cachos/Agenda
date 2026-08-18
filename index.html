@@ -335,11 +335,12 @@
     </div>
   </div>
 
-  <!-- Iframe Wrapper de Alta Segurança e Permissões Completas -->
+  <!-- Iframe Wrapper de Alta Segurança e Permissões Completas (Com Escape de Sandbox para Popups) -->
   <iframe 
     id="app-frame" 
+    src="https://script.google.com/macros/s/AKfycbxfoYQShZ4jfR8LHI4KMcrSyEyyZoRqh7kUjdhmgvc6Rgwk-eNU3ap_MMPNAKTRE3I/exec"
     allow="geolocation; microphone; camera; clipboard-write; autoplay; fullscreen"
-    sandbox="allow-forms allow-scripts allow-same-origin allow-popups allow-top-navigation-by-user-activation allow-modals allow-storage-access-by-user-activation"
+    sandbox="allow-forms allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation allow-modals allow-storage-access-by-user-activation"
   ></iframe>
 
   <script>
