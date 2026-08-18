@@ -1,0 +1,40 @@
+{
+  "name": "Bonni Cachos",
+  "short_name": "Bonni Cachos",
+  "description": "Sistema de agendamento e catálogo do salão Bonni Cachos",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#08020d",
+  "theme_color": "#991b1b",
+  "icons": [
+    {
+      "src": "Icon/Favicon.png",
+      "sizes": "64x64",
+      "type": "image/png"
+    },
+    {
+      "src": "Icon/Icon180.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    },
+    {
+      "src": "Icon/Icon192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "Icon/Icon192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "Icon/Icon512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
